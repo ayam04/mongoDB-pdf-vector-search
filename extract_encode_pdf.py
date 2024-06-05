@@ -13,7 +13,7 @@ result_collection = mongo_client[params.database][params.collection]
 result_collection.delete_many({})
 
 files = []
-pdfDir = "PDFs"
+pdfDir = "Resumes"
 
 for pdf in os.listdir(pdfDir):
 
