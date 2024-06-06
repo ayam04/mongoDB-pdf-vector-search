@@ -15,14 +15,17 @@ desired_answers = 3
 
 #pipeline for vector search index
 
-pipeline = [  {
-    '$vectorSearch': {
-      'index': 'vector_index', 
-      'path': 'documentVector', 
-      'queryVector': query_vector,
-      'k': 150, 
-      'limit': 3
-    }}]
+pipeline = [ 
+    {
+    "$vectorSearch": {
+      "index": "vector_index", 
+      "path": "documentVector", 
+      "queryVector": query_vector,
+      "k": 150, 
+      "limit": 3
+    }
+   }
+]
 
 #pipeline for normal search index
 

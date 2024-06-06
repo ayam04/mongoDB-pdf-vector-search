@@ -1,5 +1,5 @@
 from PyPDF2 import PdfReader
-from sentence_transformers import SentenceTransformer, util
+from sentence_transformers import SentenceTransformer
 import params
 import os
 from pymongo import MongoClient
