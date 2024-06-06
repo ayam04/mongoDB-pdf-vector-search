@@ -1,3 +1,6 @@
-mongodb_conn_string = '<Application connection string of Atlas cluster>'
-database = "VectorSearchDemo"
-collection = "pdf"
+import urllib.parse as prs
+
+password = "<password>"
+mongodb_conn_string = f"mongodb+srv://<username>:{prs.quote_plus(password)}@cluster0.hdcpwsw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+database = "test1"
+collection = "resumes"
