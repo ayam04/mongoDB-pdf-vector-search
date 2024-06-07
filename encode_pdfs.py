@@ -3,8 +3,6 @@ from sentence_transformers import SentenceTransformer, util
 import params
 import os
 from pymongo import MongoClient
-from utils import split_into_sentences
-import re
 
 
 mongo_client = MongoClient(params.mongodb_conn_string)
