@@ -1,11 +1,11 @@
-from PyPDF2 import PdfReader
-from sentence_transformers import SentenceTransformer
-import params
 import os
-from pymongo import MongoClient
-from functions import *
-import certifi
 import time
+import params
+import certifi
+from functions import *
+from PyPDF2 import PdfReader
+from pymongo import MongoClient
+from sentence_transformers import SentenceTransformer
 
 mongo_client = MongoClient(params.mongodb_conn_string, tlsCAFile=certifi.where())
 result_collection = mongo_client[params.database][params.collection]

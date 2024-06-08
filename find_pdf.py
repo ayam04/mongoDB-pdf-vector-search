@@ -1,7 +1,7 @@
-from sentence_transformers import SentenceTransformer
+import time
 import params
 from pymongo import MongoClient
-import time
+from sentence_transformers import SentenceTransformer
 
 with open("jd.txt", "r") as file: #enter jd here 
     jd = file.read()
