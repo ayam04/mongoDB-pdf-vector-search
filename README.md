@@ -69,7 +69,7 @@ This is the simple query passed to MongoDB:
       "index": "vector_index", 
       "path": "documentVector", 
       "queryVector": query_vector,
-      "k": 150, 
+      "numCandidates": 150, 
       "limit": 3
     }
    }
