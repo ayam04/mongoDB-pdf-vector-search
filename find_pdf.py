@@ -3,11 +3,11 @@ import params
 from pymongo import MongoClient
 
 with open("jd.txt", "r") as file: #enter jd here 
-    query = file.read()
+    jd = file.read()
 
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
-query_vector = model.encode(query).tolist()
+query_vector = model.encode(jd).tolist()
 mongo_client = MongoClient(params.mongodb_conn_string)
 result_collection = mongo_client[params.database][params.collection]
 
@@ -21,8 +21,8 @@ pipeline = [
       "index": "vector_index", 
       "path": "documentVector", 
       "queryVector": query_vector,
-      "k": 150, 
-      "limit": 3
+      "numCandidates": 150,
+      "limit": 10
     }
    }
 ]
@@ -52,4 +52,4 @@ print("\nBest Matching PDF(s)")
 print("----------------------------------------------------")
 
 for i in results:
-    print("PDF: ", i["pdf"])
+    print("PDF: ", i["resumeData"]["resumeName"] or i["pdf"])

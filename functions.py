@@ -205,11 +205,11 @@ def score_resume(job_description, resume_text):
     return float("{:.2f}".format(similarity*100))
 
 
-def score_scaler(x):
-  x = float(x)
-  mul = -0.1721*(x)/5 + 3.2967
-  y = min(x*max(1.6,mul),85)
-  return float("{:.2f}".format(y))
+# def score_scaler(x):
+#   x = float(x)
+#   mul = -0.1721*(x)/5 + 3.2967
+#   y = min(x*max(1.6,mul),85)
+#   return float("{:.2f}".format(y))
 
 
 # def get_resp_jd(jd):
