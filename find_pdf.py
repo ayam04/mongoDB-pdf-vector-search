@@ -1,10 +1,12 @@
 from sentence_transformers import SentenceTransformer
 import params
 from pymongo import MongoClient
+import time
 
 with open("jd.txt", "r") as file: #enter jd here 
     jd = file.read()
 
+start = time.time()
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
 query_vector = model.encode(jd).tolist()
@@ -47,9 +49,9 @@ pipeline = [
 # ]
 
 results = result_collection.aggregate(pipeline)
-
+stop = time.time()
 print("\nBest Matching PDF(s)")
 print("----------------------------------------------------")
-
+print(start-stop)
 for i in results:
     print("PDF: ", i["resumeData"]["resumeName"] or i["pdf"])
