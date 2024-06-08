@@ -10,7 +10,6 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk import pos_tag
 from sklearn.feature_extraction.text import TfidfVectorizer
-import nltk
 from nltk.corpus import stopwords
 import os
 from dotenv import load_dotenv
