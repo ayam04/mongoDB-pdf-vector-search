@@ -1,6 +1,7 @@
 import params
 import certifi
 from pymongo import MongoClient
+import time
 from sentence_transformers import SentenceTransformer
 from functions import clean_text
 
@@ -37,6 +38,7 @@ def dict_to_string(d, exclude_keys=None):
     return ' '.join(result)
 
 def update_existing():
+    start = time.time()
     documents = result_collection.find({"documentVector": {"$exists": False}})
     for document in documents:
         try:
@@ -53,5 +55,7 @@ def update_existing():
         except Exception as e:
             print(f"Error with: {document['_id']}: {e}")
             continue
+    stop = time.time()
+    print(f"Time taken: {stop-start}")
 
 update_existing()
