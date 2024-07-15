@@ -24,7 +24,7 @@ pip install -r requirements.txt
 Run the [upload_files.py](upload_files.py)
 
 ```python
-python3 extract_and_encode.py
+python3 upload_files.py
 ```
 
 ### Create Search Index
