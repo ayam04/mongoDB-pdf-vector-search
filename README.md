@@ -21,7 +21,7 @@ Install the requirements. This implementation uses:
 pip install -r requirements.txt
 ```
 
-Run the [extract_and_encode_pdf.py](extract_and_encode_pdf.py)
+Run the [upload_files.py](upload_files.py)
 
 ```python
 python3 extract_and_encode.py
