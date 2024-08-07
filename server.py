@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from find_pdf import search_candidates
+from update_existing import update_candidate
 import uvicorn
+from typing import List
 
 app = FastAPI()
 
@@ -13,8 +15,12 @@ async def search_db(jd: str):
         return {"error": str(e)}
 
 @app.post("/update-db")
-async def update_db():
-    pass
+async def update_db(ids: List[str] = Query(...)):
+    try:
+        update_candidate(ids)
+        return {"message": "Database updated"}
+    except Exception as e:
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     uvicorn.run(app, port=8080)

@@ -5,6 +5,7 @@ import params
 import boto3
 import certifi
 from functions import *
+from docx import Document
 from PyPDF2 import PdfReader
 from pymongo import MongoClient
 from sentence_transformers import SentenceTransformer
@@ -271,6 +272,39 @@ def s3_everything():
                 print(f"Error with: {resume}: {e}")
                 continue
     result_collection_vec.insert_many(files)
+
+def download_and_process_resume(resumeName):
+    key = f"{s3_path}/{resumeName}"
+    try:
+        if key.endswith('.pdf'):
+            with open(f"Test/{resumeName}", 'wb') as file:
+                s3.download_fileobj(bucket_name,key,file)
+            reader = PdfReader(key)
+            number_of_pages = len(reader.pages)
+            pdf_text = ""
+            for page_number in range(number_of_pages):
+                page = reader.pages[page_number]
+                pdf_text += page.extract_text()
+            resume_text = clean_text(pdf_text)
+            resume_text = replace_na_and_empty_with_none(resume_text)
+            documentVector = model.encode(resume_text).tolist()
+        
+        elif key.endswith('.docx'):
+            with open(f"Test/{resumeName}", 'wb') as file:
+                s3.download_fileobj(bucket_name,key,file)
+            doc = Document(key)
+            resume_text = "\n".join([para.text for para in doc.paragraphs])
+            resume_text = clean_text(resume_text)
+            resume_text = replace_na_and_empty_with_none(resume_text)
+            documentVector = model.encode(resume_text).tolist()
+
+        return(resume_text, documentVector)
+    except Exception as e:
+        print(f"Error download: {resumeName}: {e}")
+
+        
+    except Exception as e:
+        print(f"Error download: {resumeName}: {e}")
 
 # print(get_company_id())
 # print(get_resumes("651f80883f1252001c7d9379"))

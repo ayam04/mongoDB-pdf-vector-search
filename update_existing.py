@@ -4,11 +4,20 @@ from pymongo import MongoClient
 import time
 from sentence_transformers import SentenceTransformer
 from functions import clean_text
+from bson import ObjectId
+from upload_files import download_and_process_resume
+import os
 
-mongo_client = MongoClient(params.mongodb_conn_string, tlsCAFile=certifi.where())
-result_collection = mongo_client[params.database][params.collection]
-result_collection_vec = mongo_client[params.database][params.collection_vec]
-result_collection_final = mongo_client[params.database][params.collection_final]
+mongodb_conn_string = os.getenv("mongodb_conn_string")
+database = os.getenv("database")
+collection = os.getenv("collection")
+collection_vec = os.getenv("collection_vec")
+collection_final = os.getenv("collection_final")
+
+mongo_client = MongoClient(mongodb_conn_string, tlsCAFile=certifi.where())
+result_collection = mongo_client[database][collection]
+result_collection_vec = mongo_client[database][collection_vec]
+result_collection_final = mongo_client[database][collection_final]
 
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
@@ -139,7 +148,41 @@ def create_final_vecs():
             pass
     # print(len(files))
     result_collection_final.insert_many(files)
-    
+
+def update_candidate(ids):
+    data = []
+    for _, val in enumerate(ids):
+        result = result_collection.find_one({"_id": ObjectId(str(val))})
+        jobId = result['jobId']
+        companyId = result['companyId']
+        resumeData = result['resumeData']
+        collectionVector = model.encode(dict_to_string(result).strip()).tolist()
+
+        try:
+            resumeName = result['resumeData']['resumeName']
+            resumeText, documentVector = download_and_process_resume(resumeName)
+            data.append({
+                "companyId": companyId,
+                "jobId": jobId,
+                "resumeName": resumeName,
+                "resumeData": resumeData,
+                "resumeText": resumeText,
+                "documentVector": documentVector,
+                "collectionVector": collectionVector})
+        except Exception as e:
+            data.append({
+                "companyId": companyId,
+                "jobId": jobId,
+                "resumeName": None,
+                "resumeData": resumeData,
+                "resumeText": None,
+                "documentVector": None,
+                "collectionVector": collectionVector})
+    result_collection_final.insert_many(data)
+        # print(f"Processing {resumeName}")
+
+
 
 # update_existing()
-create_final_vecs()
+# create_final_vecs()
+update_candidate(["65a52e442f5b8e001c4cd619"])
