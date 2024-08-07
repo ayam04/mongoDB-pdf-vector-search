@@ -7,12 +7,14 @@ from functions import clean_text
 
 mongo_client = MongoClient(params.mongodb_conn_string, tlsCAFile=certifi.where())
 result_collection = mongo_client[params.database][params.collection]
+result_collection_vec = mongo_client[params.database][params.collection_vec]
+result_collection_final = mongo_client[params.database][params.collection_final]
 
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
 def dict_to_string(d, exclude_keys=None):
     if exclude_keys is None:
-        exclude_keys = ["resumeName", "jdMatchScore", "jdMatchScoreUI"]
+        exclude_keys = ["jdMatchScore", "jdMatchScoreUI", "documentVector"]
 
     result = []
 
@@ -58,4 +60,86 @@ def update_existing():
     stop = time.time()
     print(f"Time taken: {stop-start}")
 
-update_existing()
+pipeline =   [
+  {
+    "$lookup": {
+      "from": "companies",
+      "localField": "companyId",
+      "foreignField": "_id",
+      "as": "companyDetails"
+    }
+  },
+  {
+    "$lookup": {
+      "from": "jobs",
+      "localField": "jobId",
+      "foreignField": "_id",
+      "as": "jobDetails"
+    }
+  },
+  {
+    "$match": {
+      "$and": [
+        { "companyDetails": { "$ne": [] } },
+        { "jobDetails": { "$ne": [] } }
+      ]
+    }
+  }
+]
+
+def create_final_vecs():
+    files = []
+    resuls = result_collection.aggregate(pipeline, maxTimeMS=600000, allowDiskUse=True)
+    count_res = 0
+    # print(len(resuls))
+    for result in resuls:
+        collectionVector = model.encode(dict_to_string(result).strip()).tolist()
+        # count_res += 1
+        # print(count_res)
+
+        try:
+            companyId = result['companyId']
+            jobId = result['jobId']
+            resumeData = result['resumeData']
+            try:
+                res_name = result['resumeData']["resumeName"]
+                vec_resume = result_collection_vec.find({"resumeName": res_name})
+                    
+                if vec_resume:
+                    count=0
+                    for res in vec_resume:
+                        documentVector = res['documentVector']
+                        resumeText = res['resumeText']
+                        count+=1
+                        if count==1:
+                            break
+                
+                files.append({
+                    "companyId": companyId,
+                    "jobId": jobId,
+                    "resumeName": res_name,
+                    "resumeData": resumeData,
+                    "resumeText": resumeText,
+                    "documentVector": documentVector,
+                    "collectionVector": collectionVector})
+                count_res += 1
+                print(f"completed {count_res}")
+            except Exception as e:
+                # print(f"Error with: {res_name}: {e}")
+                files.append({
+                    "companyId": companyId,
+                    "jobId": jobId,
+                    "resumeName": None,
+                    "resumeData": resumeData,
+                    "resumeText": None,
+                    "documentVector": None,
+                    "collectionVector": collectionVector})
+        except Exception as e:
+            print(f"Error with: {result['_id']}: {e}")
+            pass
+    # print(len(files))
+    result_collection_final.insert_many(files)
+    
+
+# update_existing()
+create_final_vecs()

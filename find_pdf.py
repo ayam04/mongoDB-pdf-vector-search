@@ -1,66 +1,107 @@
-import time
-import ast
-import params
+import os
+# import time
+# import params
 from pymongo import MongoClient
 from bson import ObjectId
 from sentence_transformers import SentenceTransformer
+from dotenv import load_dotenv
 
-with open("jd.txt", "r") as file:  # enter jd here
-    jd = file.read()
+load_dotenv()
 
-start = time.time()
+mongodb_conn_string = os.getenv("mongodb_conn_string")
+database = os.getenv("database")
+collection_final = os.getenv("collection_final")
+
+mongo_client = MongoClient(mongodb_conn_string)
+result_collection_final = mongo_client[database][collection_final]
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+total_documents = result_collection_final.count_documents({})
+desired_answers = 10
 
-query_vector = model.encode(jd).tolist()
-mongo_client = MongoClient(params.mongodb_conn_string)
-result_collection = mongo_client[params.database][params.collection]
-total_documents = result_collection.count_documents({})
-desired_answers = 50
+def rrf(rankings, k=60):
+    scores = {}
+    for rank, doc in enumerate(rankings, start=1):
+        doc_id = doc['_id']
+        score = 1 / (k + rank)
+        if doc_id in scores:
+            scores[doc_id] += score
+        else:
+            scores[doc_id] = score
+    return scores
 
-# vector search index pipeline 
-pipeline = [
-    {
-        "$vectorSearch": {
-            "index": "vector_index",
-            "path": "documentVector",
-            "queryVector": query_vector,
-            "numCandidates": total_documents,
-            "limit": desired_answers
+def search_candidates(jd):
+    candidates = []
+    query_vector = model.encode(jd).tolist()
+    pipeline_document = [
+        {
+            "$vectorSearch": {
+                "index": "default",
+                "path": "documentVector",
+                "queryVector": query_vector,
+                "numCandidates": total_documents,
+                "limit": desired_answers
+            }
         }
-    }
-]
+    ]
 
-results = result_collection.aggregate(pipeline)
-stop = time.time()
+    pipeline_collection = [
+        {
+            "$vectorSearch": {
+                "index": "default",
+                "path": "collectionVector",
+                "queryVector": query_vector,
+                "numCandidates": total_documents,
+                "limit": desired_answers
+            }
+        }
+    ]
 
-print("\nBest Matching Resumes(s)")
-print("----------------------------------------------------")
-print("Execution Time: ", stop - start)
+    document_search_results = list(result_collection_final.aggregate(pipeline_document))
+    collection_search_results = list(result_collection_final.aggregate(pipeline_collection))
 
-seen_documents = set()
+    doc_rrf_scores = rrf(document_search_results)
+    collection_rrf_scores = rrf(collection_search_results)
 
-for result in results:
-    resume_data = result.get('resumeData')
-    if resume_data:
-        def remove_object_ids(data):
-            if isinstance(data, dict):
-                for key, value in data.items():
-                    if isinstance(value, (ObjectId, dict, list)):
-                        if isinstance(value, ObjectId):
-                            data[key] = str(value)
-                        elif isinstance(value, dict):
-                            data[key] = remove_object_ids(value)
-                        elif isinstance(value, list):
-                            data[key] = [remove_object_ids(item) for item in value]
-            return data
+    combined_scores = {}
+    for doc_id, score in doc_rrf_scores.items():
+        combined_scores[doc_id] = score
 
-        resume_data_cleaned = remove_object_ids(resume_data)
-        resume_data_str = str(resume_data_cleaned)
-        
-        if resume_data_str not in seen_documents:
-            res_data = ast.literal_eval(resume_data_str)
-            try:
-              print("PDF: ", res_data["resumeName"])
-            except:
-              print(res_data)
-            seen_documents.add(resume_data_str)
+    for doc_id, score in collection_rrf_scores.items():
+        if doc_id in combined_scores:
+            combined_scores[doc_id] += score
+        else:
+            combined_scores[doc_id] = score
+
+    sorted_combined_results = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)
+    final_results = sorted_combined_results[:desired_answers]
+
+    unique_documents = []
+    seen_documents = set()
+
+    for doc_id, _ in final_results:
+        if doc_id not in seen_documents:
+            unique_documents.append(doc_id)
+            seen_documents.add(doc_id)
+
+    for doc_id in unique_documents:
+        resume_data = result_collection_final.find_one({"_id": doc_id})
+        resume_data = remove_object_ids(resume_data)  # Convert ObjectIds to strings
+        if resume_data['resumeName'] is not None:
+            candidates.append(resume_data['resumeName'])
+        else:
+            candidates.append(resume_data["_id"])
+
+    return candidates
+
+def remove_object_ids(data):
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if isinstance(value, ObjectId):
+                data[key] = str(value)
+            elif isinstance(value, dict):
+                data[key] = remove_object_ids(value)
+            elif isinstance(value, list):
+                data[key] = [remove_object_ids(item) for item in value]
+    elif isinstance(data, list):
+        data = [remove_object_ids(item) for item in data]
+    return data
