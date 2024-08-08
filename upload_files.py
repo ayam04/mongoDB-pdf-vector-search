@@ -13,9 +13,16 @@ from bson import ObjectId
 
 load_dotenv()
 
-mongo_client = MongoClient(params.mongodb_conn_string, tlsCAFile=certifi.where())
-result_collection = mongo_client[params.database][params.collection]
-result_collection_vec = mongo_client[params.database][params.collection_vec]
+mongodb_conn_string = os.getenv("mongodb_conn_string")
+database = os.getenv("database")
+collection = os.getenv("collection")
+collection_vec = os.getenv("collection_vec")
+collection_final = os.getenv("collection_final")
+
+mongo_client = MongoClient(mongodb_conn_string, tlsCAFile=certifi.where())
+result_collection = mongo_client[database][collection]
+result_collection_vec = mongo_client[database][collection_vec]
+result_collection_final = mongo_client[database][collection_final]
 
 aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
 aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -145,7 +152,7 @@ def get_resume_text_and_upload(companyId):
     delete_pdf()
 
 def delete_pdf():
-    folder = "Resumes"
+    folder = "Test"
     shutil.rmtree(folder); os.makedirs(folder)
 
 def update_for_company():
@@ -299,8 +306,6 @@ def download_and_process_resume(resumeName):
             documentVector = model.encode(resume_text).tolist()
 
         return(resume_text, documentVector)
-    except Exception as e:
-        print(f"Error download: {resumeName}: {e}")
 
         
     except Exception as e:
@@ -314,4 +319,4 @@ def download_and_process_resume(resumeName):
 # download_all_resumes()
 # delete_pdf()
 # print(get_company_for_resume("000047541731056_Alaa_Jaafar_5458606.pdf"))
-s3_everything()
+# s3_everything()

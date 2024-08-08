@@ -2,7 +2,9 @@ from fastapi import FastAPI, Query
 from find_pdf import search_candidates
 from update_existing import update_candidate
 import uvicorn
+from pydantic import BaseModel
 from typing import List
+from bson import ObjectId
 
 app = FastAPI()
 
@@ -14,10 +16,15 @@ async def search_db(jd: str):
     except Exception as e:
         return {"error": str(e)}
 
+class UpdateRequest(BaseModel):
+    ids: List[str]
+
 @app.post("/update-db")
-async def update_db(ids: List[str] = Query(...)):
+async def update_db(request: UpdateRequest):
     try:
-        update_candidate(ids)
+        # object_ids = [ObjectId(id_str) for id_str in request.ids]
+        update_candidate(request.ids)
+        
         return {"message": "Database updated"}
     except Exception as e:
         return {"error": str(e)}

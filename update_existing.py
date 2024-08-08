@@ -5,7 +5,7 @@ import time
 from sentence_transformers import SentenceTransformer
 from functions import clean_text
 from bson import ObjectId
-from upload_files import download_and_process_resume
+from upload_files import download_and_process_resume, delete_pdf
 import os
 
 mongodb_conn_string = os.getenv("mongodb_conn_string")
@@ -151,8 +151,10 @@ def create_final_vecs():
 
 def update_candidate(ids):
     data = []
-    for _, val in enumerate(ids):
+    for val in ids:
+        # print(val)
         result = result_collection.find_one({"_id": ObjectId(str(val))})
+        # print(result)
         jobId = result['jobId']
         companyId = result['companyId']
         resumeData = result['resumeData']
@@ -178,11 +180,13 @@ def update_candidate(ids):
                 "resumeText": None,
                 "documentVector": None,
                 "collectionVector": collectionVector})
+    print(data)
     result_collection_final.insert_many(data)
+    delete_pdf()
         # print(f"Processing {resumeName}")
 
 
 
 # update_existing()
 # create_final_vecs()
-update_candidate(["65a52e442f5b8e001c4cd619"])
+# update_candidate(["651f82b23f1252001c7d93de"])
