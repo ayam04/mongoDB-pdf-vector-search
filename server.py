@@ -4,7 +4,6 @@ from update_existing import update_candidate
 import uvicorn
 from pydantic import BaseModel
 from typing import List
-from bson import ObjectId
 
 app = FastAPI()
 
@@ -22,7 +21,6 @@ class UpdateRequest(BaseModel):
 @app.post("/update-db")
 async def update_db(request: UpdateRequest):
     try:
-        # object_ids = [ObjectId(id_str) for id_str in request.ids]
         update_candidate(request.ids)
         
         return {"message": "Database updated"}
