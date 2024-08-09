@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI
 from find_pdf import search_candidates
 from update_existing import update_candidate
 import uvicorn
@@ -28,4 +28,4 @@ async def update_db(request: UpdateRequest):
         return {"error": str(e)}
 
 if __name__ == "__main__":
-    uvicorn.run(app, port=8080)
+    uvicorn.run("server:app", port=8080, reload="Enabled")
