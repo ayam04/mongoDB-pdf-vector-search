@@ -100,31 +100,25 @@ def create_final_vecs():
     files = []
     resuls = result_collection.aggregate(pipeline, maxTimeMS=600000, allowDiskUse=True)
     count_res = 0
-    # print(len(resuls))
     for result in resuls:
         collectionVector = model.encode(dict_to_string(result).strip()).tolist()
-        # count_res += 1
-        # print(count_res)
 
         try:
+            assId = result['_id']
             companyId = result['companyId']
             jobId = result['jobId']
             resumeData = result['resumeData']
             try:
                 res_name = result['resumeData']["resumeName"]
-                vec_resume = result_collection_vec.find({"resumeName": res_name})
+                vec_resume = result_collection_vec.find_one({"resumeName": res_name})
                     
                 if vec_resume:
-                    count=0
                     for res in vec_resume:
                         documentVector = res['documentVector']
                         resumeText = res['resumeText']
-                        count+=1
-                        if count==1:
-                            break
                 
                 files.append({
-                    "assId": result['_id'],
+                    "assId": assId,
                     "companyId": companyId,
                     "jobId": jobId,
                     "resumeName": res_name,
@@ -135,9 +129,8 @@ def create_final_vecs():
                 count_res += 1
                 print(f"completed {count_res}")
             except Exception as e:
-                # print(f"Error with: {res_name}: {e}")
                 files.append({
-                    "assId": result['_id'],
+                    "assId": assId,
                     "companyId": companyId,
                     "jobId": jobId,
                     "resumeName": None,
@@ -192,5 +185,5 @@ def update_candidate(ids):
 
 
 # update_existing()
-# create_final_vecs()
+create_final_vecs()
 # update_candidate(["651f82b23f1252001c7d93de"])

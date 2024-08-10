@@ -18,7 +18,7 @@ result_collection = mongo_client[database][collection]
 result_collection_final = mongo_client[database][collection_final]
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 total_documents = result_collection_final.count_documents({})
-desired_answers = 10
+desired_answers = 50
 
 def rrf(rankings, k=60):
     scores = {}
