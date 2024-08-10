@@ -10,9 +10,11 @@ load_dotenv()
 
 mongodb_conn_string = os.getenv("mongodb_conn_string")
 database = os.getenv("database")
+collection = os.getenv("collection")
 collection_final = os.getenv("collection_final")
 
 mongo_client = MongoClient(mongodb_conn_string)
+result_collection = mongo_client[database][collection]
 result_collection_final = mongo_client[database][collection_final]
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 total_documents = result_collection_final.count_documents({})
@@ -85,12 +87,10 @@ def search_candidates(jd):
 
     for doc_id in unique_documents:
         resume_data = result_collection_final.find_one({"_id": doc_id})
-        resume_data = remove_object_ids(resume_data)  # Convert ObjectIds to strings
-        if resume_data['resumeName'] is not None:
-            candidates.append(resume_data['resumeName'])
-        else:
-            candidates.append(resume_data["_id"])
-
+        resume_data = remove_object_ids(resume_data)
+        if resume_data['assId'] is not None:
+            candidates.append(remove_object_ids(resume_data["assId"]))
+    print(candidates)
     return candidates
 
 def remove_object_ids(data):
@@ -105,3 +105,5 @@ def remove_object_ids(data):
     elif isinstance(data, list):
         data = [remove_object_ids(item) for item in data]
     return data
+
+search_candidates("Python Developer with 10 years of experience in Django and Flask")

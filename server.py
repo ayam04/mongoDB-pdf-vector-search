@@ -7,10 +7,13 @@ from typing import List
 
 app = FastAPI()
 
+class SearchRequest(BaseModel):
+    jd: str
+
 @app.post("/query")
-async def search_db(jd: str):
+async def search_db(request: SearchRequest):
     try:
-        candidates = search_candidates(jd)
+        candidates = search_candidates(request.jd)
         return {"candidates": candidates}
     except Exception as e:
         return {"error": str(e)}
@@ -22,7 +25,7 @@ class UpdateRequest(BaseModel):
 async def update_db(request: UpdateRequest):
     try:
         update_candidate(request.ids)
-        
+
         return {"message": "Database updated"}
     except Exception as e:
         return {"error": str(e)}

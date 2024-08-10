@@ -124,6 +124,7 @@ def create_final_vecs():
                             break
                 
                 files.append({
+                    "assId": result['_id'],
                     "companyId": companyId,
                     "jobId": jobId,
                     "resumeName": res_name,
@@ -136,6 +137,7 @@ def create_final_vecs():
             except Exception as e:
                 # print(f"Error with: {res_name}: {e}")
                 files.append({
+                    "assId": result['_id'],
                     "companyId": companyId,
                     "jobId": jobId,
                     "resumeName": None,
@@ -164,6 +166,7 @@ def update_candidate(ids):
             resumeName = result['resumeData']['resumeName']
             resumeText, documentVector = download_and_process_resume(resumeName)
             data.append({
+                "assId": val,
                 "companyId": companyId,
                 "jobId": jobId,
                 "resumeName": resumeName,
@@ -173,6 +176,7 @@ def update_candidate(ids):
                 "collectionVector": collectionVector})
         except Exception as e:
             data.append({
+                "assId": val,
                 "companyId": companyId,
                 "jobId": jobId,
                 "resumeName": None,
@@ -188,5 +192,5 @@ def update_candidate(ids):
 
 
 # update_existing()
-# create_final_vecs()
+create_final_vecs()
 # update_candidate(["651f82b23f1252001c7d93de"])
