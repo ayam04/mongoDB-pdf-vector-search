@@ -192,5 +192,5 @@ def update_candidate(ids):
 
 
 # update_existing()
-create_final_vecs()
+# create_final_vecs()
 # update_candidate(["651f82b23f1252001c7d93de"])

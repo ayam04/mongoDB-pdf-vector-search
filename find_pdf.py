@@ -90,7 +90,7 @@ def search_candidates(jd):
         resume_data = remove_object_ids(resume_data)
         if resume_data['assId'] is not None:
             candidates.append(remove_object_ids(resume_data["assId"]))
-    print(candidates)
+    # print(candidates)
     return candidates
 
 def remove_object_ids(data):
@@ -106,4 +106,4 @@ def remove_object_ids(data):
         data = [remove_object_ids(item) for item in data]
     return data
 
-search_candidates("Python Developer with 10 years of experience in Django and Flask")
+# search_candidates("Python Developer with 10 years of experience in Django and Flask")
