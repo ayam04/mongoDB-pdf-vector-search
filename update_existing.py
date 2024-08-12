@@ -99,7 +99,7 @@ pipeline =   [
 def create_final_vecs():
     files = []
     resuls = result_collection.aggregate(pipeline, maxTimeMS=600000, allowDiskUse=True)
-    count_res = 0
+    count_res = 1
     for result in resuls:
         collectionVector = model.encode(dict_to_string(result).strip()).tolist()
 
@@ -110,7 +110,7 @@ def create_final_vecs():
             resumeData = result['resumeData']
             try:
                 res_name = result['resumeData']["resumeName"]
-                vec_resume = result_collection_vec.find_one({"resumeName": res_name})
+                vec_resume = result_collection_vec.find({"resumeName": res_name})
                     
                 if vec_resume:
                     for res in vec_resume:
@@ -129,6 +129,7 @@ def create_final_vecs():
                 count_res += 1
                 print(f"completed {count_res}")
             except Exception as e:
+                print(f"E{e}")
                 files.append({
                     "assId": assId,
                     "companyId": companyId,
@@ -185,5 +186,5 @@ def update_candidate(ids):
 
 
 # update_existing()
-create_final_vecs()
+# create_final_vecs()
 # update_candidate(["651f82b23f1252001c7d93de"])
